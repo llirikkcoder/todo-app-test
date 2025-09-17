@@ -12,7 +12,8 @@ interface TaskItemProps {
 const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const { currentPage, sortBy, sortOrder } = useSelector((state: RootState) => state.tasks);
+  const { currentPage } = useSelector((state: RootState) => state.tasks);
+  const { sortBy, sortOrder } = useSelector((state: RootState) => state.ui);
   const taskEditState = useSelector((state: RootState) => state.ui.editingTasks[task.id]);
   const isEditing = taskEditState?.isEditing || false;
   const editedText = taskEditState?.editedText || task.text;
