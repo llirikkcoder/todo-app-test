@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store/store';
 import { fetchTasks, setCurrentPage } from '../store/tasksSlice';
+import { setSortBy, setSortOrder } from '../store/uiSlice';
 import TaskItem from './TaskItem';
 import Pagination from './Pagination';
 import SortControls from './SortControls';
@@ -11,8 +12,7 @@ const TaskList: React.FC = () => {
   const { tasks, loading, error, currentPage, totalPages } = useSelector(
     (state: RootState) => state.tasks
   );
-  const [sortBy, setSortBy] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const { sortBy, sortOrder } = useSelector((state: RootState) => state.ui);
 
   useEffect(() => {
     dispatch(fetchTasks({
@@ -26,10 +26,10 @@ const TaskList: React.FC = () => {
 
   const handleSort = (field: 'username' | 'email' | 'status') => {
     if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      dispatch(setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc'));
     } else {
-      setSortBy(field);
-      setSortOrder('asc');
+      dispatch(setSortBy(field));
+      dispatch(setSortOrder('asc'));
     }
   };
 

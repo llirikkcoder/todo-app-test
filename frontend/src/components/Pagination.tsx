@@ -26,6 +26,18 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
     return pages;
   };
 
+  const pageNumbers = getPageNumbers();
+  const showStartEllipsis = currentPage > 3;
+  const showEndEllipsis = currentPage < totalPages - 2;
+  const showFirstPage = currentPage > 3;
+  const showLastPage = currentPage < totalPages - 2;
+  const showStartDots = currentPage > 4;
+  const showEndDots = currentPage < totalPages - 3;
+
+  const getPageButtonClassName = (page: number) => {
+    return currentPage === page ? 'pagination-btn active' : 'pagination-btn';
+  };
+
   return (
     <div className="pagination">
       <button
@@ -36,31 +48,35 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
         ←
       </button>
 
-      {currentPage > 3 && (
+      {showStartEllipsis && (
         <>
-          <button className="pagination-btn" onClick={() => onPageChange(1)}>
-            1
-          </button>
-          {currentPage > 4 && <span className="pagination-dots">...</span>}
+          {showFirstPage && (
+            <button className="pagination-btn" onClick={() => onPageChange(1)}>
+              1
+            </button>
+          )}
+          {showStartDots && <span className="pagination-dots">...</span>}
         </>
       )}
 
-      {getPageNumbers().map(page => (
+      {pageNumbers.map(page => (
         <button
           key={page}
-          className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+          className={getPageButtonClassName(page)}
           onClick={() => onPageChange(page)}
         >
           {page}
         </button>
       ))}
 
-      {currentPage < totalPages - 2 && (
+      {showEndEllipsis && (
         <>
-          {currentPage < totalPages - 3 && <span className="pagination-dots">...</span>}
-          <button className="pagination-btn" onClick={() => onPageChange(totalPages)}>
-            {totalPages}
-          </button>
+          {showEndDots && <span className="pagination-dots">...</span>}
+          {showLastPage && (
+            <button className="pagination-btn" onClick={() => onPageChange(totalPages)}>
+              {totalPages}
+            </button>
+          )}
         </>
       )}
 

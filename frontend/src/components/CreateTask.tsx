@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from '../store/store';
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../store/store';
 import { createTask, fetchTasks } from '../store/tasksSlice';
+import {
+  setCreateTaskFormField,
+  setCreateTaskFormErrors,
+  setCreateTaskFormSuccess,
+  setCreateTaskFormSubmitting,
+  resetCreateTaskForm
+} from '../store/uiSlice';
 
 const CreateTask: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    text: ''
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [success, setSuccess] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { username, email, text, errors, success, isSubmitting } = useSelector(
+    (state: RootState) => state.ui.createTaskForm
+  );
+  const formData = { username, email, text };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -31,7 +34,7 @@ const CreateTask: React.FC = () => {
       newErrors.text = 'Текст задачи обязателен';
     }
 
-    setErrors(newErrors);
+    dispatch(setCreateTaskFormErrors(newErrors));
     return Object.keys(newErrors).length === 0;
   };
 
@@ -42,36 +45,31 @@ const CreateTask: React.FC = () => {
       return;
     }
 
-    setIsSubmitting(true);
-    setSuccess(false);
+    dispatch(setCreateTaskFormSubmitting(true));
+    dispatch(setCreateTaskFormSuccess(false));
 
     try {
       await dispatch(createTask(formData)).unwrap();
 
-      setFormData({
-        username: '',
-        email: '',
-        text: ''
-      });
-      setErrors({});
-      setSuccess(true);
+      dispatch(resetCreateTaskForm());
+      dispatch(setCreateTaskFormSuccess(true));
 
-      setTimeout(() => setSuccess(false), 3000);
+      setTimeout(() => dispatch(setCreateTaskFormSuccess(false)), 3000);
 
       dispatch(fetchTasks({ page: 1 }));
     } catch (error) {
-      setErrors({ general: 'Ошибка при создании задачи' });
+      dispatch(setCreateTaskFormErrors({ general: 'Ошибка при создании задачи' }));
     } finally {
-      setIsSubmitting(false);
+      dispatch(setCreateTaskFormSubmitting(false));
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    dispatch(setCreateTaskFormField({ field: name as 'username' | 'email' | 'text', value }));
 
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      dispatch(setCreateTaskFormErrors({ ...errors, [name]: '' }));
     }
   };
 
@@ -98,7 +96,7 @@ const CreateTask: React.FC = () => {
             type="text"
             id="username"
             name="username"
-            value={formData.username}
+            value={username}
             onChange={handleChange}
             className={errors.username ? 'error' : ''}
             disabled={isSubmitting}
@@ -112,7 +110,7 @@ const CreateTask: React.FC = () => {
             type="text"
             id="email"
             name="email"
-            value={formData.email}
+            value={email}
             onChange={handleChange}
             className={errors.email ? 'error' : ''}
             disabled={isSubmitting}
@@ -125,7 +123,7 @@ const CreateTask: React.FC = () => {
           <textarea
             id="text"
             name="text"
-            value={formData.text}
+            value={text}
             onChange={handleChange}
             className={errors.text ? 'error' : ''}
             rows={3}

@@ -4,7 +4,6 @@ export interface Task {
   email: string;
   text: string;
   status: 'pending' | 'completed';
-  editedByAdmin: boolean;
   createdAt: string;
 }
 

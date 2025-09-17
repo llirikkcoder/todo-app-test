@@ -1,36 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store/store';
 import { login, clearError } from '../store/authSlice';
+import { setLoginModalOpen, setLoginFormField, setLoginFormErrors } from '../store/uiSlice';
 
 const LoginModal: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { loading, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const [isOpen, setIsOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    username: '',
-    password: ''
-  });
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const { loginModalOpen, loginForm } = useSelector((state: RootState) => state.ui);
+  const { username, password, errors: formErrors } = loginForm;
+  const formData = { username, password };
 
   useEffect(() => {
     if (isAuthenticated) {
-      setIsOpen(false);
-      setFormData({ username: '', password: '' });
+      dispatch(setLoginModalOpen(false));
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, dispatch]);
 
-  useEffect(() => {
-    const handleLoginClick = (e: Event) => {
-      const target = e.target as HTMLElement;
-      if (target.classList.contains('btn-login')) {
-        setIsOpen(true);
-      }
-    };
-
-    document.addEventListener('click', handleLoginClick);
-    return () => document.removeEventListener('click', handleLoginClick);
-  }, []);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -43,7 +29,7 @@ const LoginModal: React.FC = () => {
       errors.password = 'Пароль обязателен';
     }
 
-    setFormErrors(errors);
+    dispatch(setLoginFormErrors(errors));
     return Object.keys(errors).length === 0;
   };
 
@@ -57,16 +43,16 @@ const LoginModal: React.FC = () => {
     const result = await dispatch(login(formData));
 
     if (login.rejected.match(result)) {
-      setFormErrors({ general: 'Неверные учетные данные' });
+      dispatch(setLoginFormErrors({ general: 'Неверные учетные данные' }));
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    dispatch(setLoginFormField({ field: name as 'username' | 'password', value }));
 
     if (formErrors[name]) {
-      setFormErrors(prev => ({ ...prev, [name]: '' }));
+      dispatch(setLoginFormErrors({ ...formErrors, [name]: '' }));
     }
 
     if (error) {
@@ -75,13 +61,11 @@ const LoginModal: React.FC = () => {
   };
 
   const handleClose = () => {
-    setIsOpen(false);
-    setFormData({ username: '', password: '' });
-    setFormErrors({});
+    dispatch(setLoginModalOpen(false));
     dispatch(clearError());
   };
 
-  if (!isOpen) return null;
+  if (!loginModalOpen) return null;
 
   return (
     <div className="modal-overlay" onClick={handleClose}>
@@ -104,7 +88,7 @@ const LoginModal: React.FC = () => {
               type="text"
               id="username"
               name="username"
-              value={formData.username}
+              value={username}
               onChange={handleChange}
               className={formErrors.username ? 'error' : ''}
               disabled={loading}
@@ -121,7 +105,7 @@ const LoginModal: React.FC = () => {
               type="password"
               id="password"
               name="password"
-              value={formData.password}
+              value={password}
               onChange={handleChange}
               className={formErrors.password ? 'error' : ''}
               disabled={loading}

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store/store';
 import { updateTask, fetchTasks } from '../store/tasksSlice';
+import { setTaskEditing, setTaskEditedText } from '../store/uiSlice';
 import { Task } from '../types';
 
 interface TaskItemProps {
@@ -12,8 +13,9 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { currentPage, sortBy, sortOrder } = useSelector((state: RootState) => state.tasks);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedText, setEditedText] = useState(task.text);
+  const taskEditState = useSelector((state: RootState) => state.ui.editingTasks[task.id]);
+  const isEditing = taskEditState?.isEditing || false;
+  const editedText = taskEditState?.editedText || task.text;
 
   const handleStatusChange = async () => {
     if (!isAuthenticated) return;
@@ -46,7 +48,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
       }));
     }
 
-    setIsEditing(false);
+    dispatch(setTaskEditing({ taskId: task.id, isEditing: false }));
   };
 
   const renderText = () => {
@@ -60,8 +62,10 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
     return text;
   };
 
+  const taskClassName = task.status === 'completed' ? 'task-item completed' : 'task-item';
+
   return (
-    <div className={`task-item ${task.status === 'completed' ? 'completed' : ''}`}>
+    <div className={taskClassName}>
       <div className="task-header">
         <div className="task-info">
           <span className="task-username">{task.username}</span>
@@ -71,9 +75,6 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
           {task.status === 'completed' && (
             <span className="badge badge-completed">Выполнено</span>
           )}
-          {task.editedByAdmin && (
-            <span className="badge badge-edited">Отредактировано администратором</span>
-          )}
         </div>
       </div>
 
@@ -82,7 +83,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
           <div className="task-edit">
             <textarea
               value={editedText}
-              onChange={(e) => setEditedText(e.target.value)}
+              onChange={(e) => dispatch(setTaskEditedText({ taskId: task.id, text: e.target.value }))}
               className="task-edit-textarea"
             />
             <div className="task-edit-actions">
@@ -91,10 +92,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
               </button>
               <button
                 className="btn btn-cancel"
-                onClick={() => {
-                  setEditedText(task.text);
-                  setIsEditing(false);
-                }}
+                onClick={() => dispatch(setTaskEditing({ taskId: task.id, isEditing: false }))}
               >
                 Отмена
               </button>
@@ -117,7 +115,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
           {!isEditing && (
             <button
               className="btn btn-edit"
-              onClick={() => setIsEditing(true)}
+              onClick={() => dispatch(setTaskEditing({ taskId: task.id, isEditing: true, text: task.text }))}
             >
               Редактировать
             </button>

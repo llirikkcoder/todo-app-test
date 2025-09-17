@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { logout } from '../store/authSlice';
+import { setLoginModalOpen } from '../store/uiSlice';
 
 const Header: React.FC = () => {
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
-  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -25,7 +25,7 @@ const Header: React.FC = () => {
               </button>
             </>
           ) : (
-            <button className="btn btn-login" onClick={() => setShowLoginModal(true)}>
+            <button className="btn btn-login" onClick={() => dispatch(setLoginModalOpen(true))}>
               Войти
             </button>
           )}

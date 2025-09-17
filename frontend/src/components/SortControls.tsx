@@ -18,31 +18,30 @@ const SortControls: React.FC<SortControlsProps> = ({ sortBy, sortOrder, onSort }
     onSort(field);
   };
 
+  const getButtonClassName = (field: string) => {
+    return sortBy === field ? 'sort-btn active' : 'sort-btn';
+  };
+
+  const sortFields = [
+    { field: 'username' as const, label: 'Имя пользователя' },
+    { field: 'email' as const, label: 'Email' },
+    { field: 'status' as const, label: 'Статус' }
+  ];
+
   return (
     <div className="sort-controls">
       <label className="sort-label">Сортировка:</label>
       <div className="sort-buttons">
-        <button
-          type="button"
-          className={`sort-btn ${sortBy === 'username' ? 'active' : ''}`}
-          onClick={(e) => handleSort(e, 'username')}
-        >
-          Имя пользователя {getSortIcon('username')}
-        </button>
-        <button
-          type="button"
-          className={`sort-btn ${sortBy === 'email' ? 'active' : ''}`}
-          onClick={(e) => handleSort(e, 'email')}
-        >
-          Email {getSortIcon('email')}
-        </button>
-        <button
-          type="button"
-          className={`sort-btn ${sortBy === 'status' ? 'active' : ''}`}
-          onClick={(e) => handleSort(e, 'status')}
-        >
-          Статус {getSortIcon('status')}
-        </button>
+        {sortFields.map(({ field, label }) => (
+          <button
+            key={field}
+            type="button"
+            className={getButtonClassName(field)}
+            onClick={(e) => handleSort(e, field)}
+          >
+            {label} {getSortIcon(field)}
+          </button>
+        ))}
       </div>
     </div>
   );
