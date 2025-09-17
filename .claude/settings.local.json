@@ -9,7 +9,8 @@
       "Bash(pg_isready:*)",
       "Bash(psql:*)",
       "Read(//mnt/wsl/**)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []
