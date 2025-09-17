@@ -18,7 +18,7 @@ const getTasks = async (req, res) => {
       limit,
       offset,
       order: [[orderField, orderDirection]],
-      attributes: ['id', 'username', 'email', 'text', 'status', 'createdAt']
+      attributes: ['id', 'username', 'email', 'text', 'status', 'editedByAdmin', 'createdAt']
     });
 
     const sanitizedRows = rows.map(task => ({

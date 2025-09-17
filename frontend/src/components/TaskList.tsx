@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store/store';
 import { fetchTasks, setCurrentPage } from '../store/tasksSlice';
@@ -16,9 +16,11 @@ const TaskList: React.FC = () => {
 
   useEffect(() => {
     dispatch(fetchTasks({
-      page: currentPage
+      page: currentPage,
+      sortBy: sortBy || undefined,
+      sortOrder
     }));
-  }, [dispatch, currentPage]);
+  }, [dispatch, currentPage, sortBy, sortOrder]);
 
   const handlePageChange = (page: number) => {
     dispatch(setCurrentPage(page));
@@ -33,26 +35,6 @@ const TaskList: React.FC = () => {
     }
   };
 
-  const sortedTasks = useMemo(() => {
-    if (!sortBy) return tasks;
-
-    const tasksCopy = [...tasks];
-    return tasksCopy.sort((a, b) => {
-      let aValue = a[sortBy as keyof typeof a];
-      let bValue = b[sortBy as keyof typeof b];
-
-      if (typeof aValue === 'string') {
-        aValue = aValue.toLowerCase();
-        bValue = (bValue as string).toLowerCase();
-      }
-
-      if (sortOrder === 'asc') {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-      }
-    });
-  }, [tasks, sortBy, sortOrder]);
 
   if (loading) {
     return <div className="loading">Загрузка...</div>;
@@ -71,10 +53,10 @@ const TaskList: React.FC = () => {
       />
 
       <div className="task-list">
-        {sortedTasks.length === 0 ? (
+        {tasks.length === 0 ? (
           <p className="no-tasks">Нет задач</p>
         ) : (
-          sortedTasks.map(task => (
+          tasks.map(task => (
             <TaskItem key={task.id} task={task} />
           ))
         )}

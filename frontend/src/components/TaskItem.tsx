@@ -75,6 +75,9 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
           {task.status === 'completed' && (
             <span className="badge badge-completed">Выполнено</span>
           )}
+          {task.editedByAdmin && (
+            <span className="badge badge-edited">Отредактировано администратором</span>
+          )}
         </div>
       </div>
 
