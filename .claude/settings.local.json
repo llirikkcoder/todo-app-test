@@ -10,7 +10,11 @@
       "Bash(psql:*)",
       "Read(//mnt/wsl/**)",
       "Bash(awk:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Read(//tmp/**)",
+      "Bash(~/bin/ngrok:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []
