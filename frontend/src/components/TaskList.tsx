@@ -1,24 +1,24 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store/store';
-import { fetchTasks, setSortBy, setSortOrder, setCurrentPage } from '../store/tasksSlice';
+import { fetchTasks, setCurrentPage } from '../store/tasksSlice';
 import TaskItem from './TaskItem';
 import Pagination from './Pagination';
 import SortControls from './SortControls';
 
 const TaskList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { tasks, loading, error, currentPage, totalPages, sortBy, sortOrder } = useSelector(
+  const { tasks, loading, error, currentPage, totalPages } = useSelector(
     (state: RootState) => state.tasks
   );
+  const [sortBy, setSortBy] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     dispatch(fetchTasks({
-      page: currentPage,
-      sortBy: sortBy || undefined,
-      sortOrder
+      page: currentPage
     }));
-  }, [dispatch, currentPage, sortBy, sortOrder]);
+  }, [dispatch, currentPage]);
 
   const handlePageChange = (page: number) => {
     dispatch(setCurrentPage(page));
@@ -26,12 +26,33 @@ const TaskList: React.FC = () => {
 
   const handleSort = (field: 'username' | 'email' | 'status') => {
     if (sortBy === field) {
-      dispatch(setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc'));
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
-      dispatch(setSortBy(field));
-      dispatch(setSortOrder('asc'));
+      setSortBy(field);
+      setSortOrder('asc');
     }
   };
+
+  const sortedTasks = useMemo(() => {
+    if (!sortBy) return tasks;
+
+    const tasksCopy = [...tasks];
+    return tasksCopy.sort((a, b) => {
+      let aValue = a[sortBy as keyof typeof a];
+      let bValue = b[sortBy as keyof typeof b];
+
+      if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = (bValue as string).toLowerCase();
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+  }, [tasks, sortBy, sortOrder]);
 
   if (loading) {
     return <div className="loading">Загрузка...</div>;
@@ -50,10 +71,10 @@ const TaskList: React.FC = () => {
       />
 
       <div className="task-list">
-        {tasks.length === 0 ? (
+        {sortedTasks.length === 0 ? (
           <p className="no-tasks">Нет задач</p>
         ) : (
-          tasks.map(task => (
+          sortedTasks.map(task => (
             <TaskItem key={task.id} task={task} />
           ))
         )}
